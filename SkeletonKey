@@ -1,0 +1,109 @@
+-- Services
+
+local Players = game:GetService("Players")
+local TS = game:GetService("TweenService")
+local ReSt = game:GetService("ReplicatedStorage")
+local PPS = game:GetService("ProximityPromptService")
+
+-- Variables
+
+local Plr = Players.LocalPlayer
+local Char = Plr.Character or Plr.CharacterAdded:Wait()
+local Hum = Char:WaitForChild("Humanoid")
+
+local SelfModules = {
+    Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Functions.lua"))(),
+    DoorReplication = loadstring(game:HttpGet("https://pastebin.com/raw/PJXEwyuL"))(),
+    Achievements = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Custom%20Achievements/Source.lua"))(),
+}
+local Assets = {
+    KeyItem = game:GetObjects("rbxassetid://11703075374")[1],
+  
+
+}
+
+-- Functions
+
+local function replicateDoor(room)
+    local originalDoor = room:FindFirstChild("Door")
+
+    if originalDoor then
+        local door = SelfModules.DoorReplication.CreateDoor({
+            Locked = room:WaitForChild("Assets"):WaitForChild("KeyObtain", 0.3) ~= nil,
+            Sign = true,
+            Light = true,
+            Barricaded = false,
+            CustomKeyNames = {"Skeleton Key"},
+            DestroyKey = true,
+            GuidingLight = true,
+            FastOpen = false,
+        })
+
+        door.Model.Name = "FakeDoor"
+        door.Model:SetPrimaryPartCFrame(originalDoor.PrimaryPart.CFrame)
+        door.Model.Parent = room
+        SelfModules.DoorReplication.ReplicateDoor(door)
+        originalDoor:Destroy()
+        
+        door.Debug.OnDoorOpened = function()
+            local key = Char:FindFirstChild(Assets.KeyItem.Name) or Char:FindFirstChild("Key")
+
+            if key then
+                if key.Name == Assets.KeyItem.Name then
+                    local uses = key:GetAttribute("Uses") - 1
+    
+                    if uses == 5 then
+                        key:Destroy()
+    
+                        Achievements.Get({
+    Title = "Break the door.",
+    Desc = "Cookie Doors Edited On Top.",
+    Reason = "You used the skeleton key.",
+    Image = "https://cdn.discordapp.com/attachments/925272541264769044/1089552803904626718/20230326_211344.png",
+})
+                    else
+                        key:SetAttribute("Uses", uses)
+                    end
+    
+                    Hum.Health = math.max(Hum.Health - 10, 0)
+                    workspace.Curse:Play()
+                else
+                    key:Destroy()
+                end
+            end
+        end
+    end
+end
+
+-- Scripts
+
+if typeof(Assets.KeyItem) ~= "Instance" then
+    return
+end
+
+Assets.KeyItem.Parent = game.Players.LocalPlayer.Backpack
+
+-- Door replication setup
+
+task.spawn(function()
+    for _, v in next, workspace.CurrentRooms:GetChildren() do
+        if v:FindFirstChild("Door") and v.Door:FindFirstChild("Lock") then
+            replicateDoor(v)
+        end
+    end
+    
+    workspace.CurrentRooms.DescendantAdded:Connect(function(des)
+        if des.Name == "Lock" and des.Parent.Name == "Door" then
+            task.wait(0.3)
+
+            if des.Parent then
+                replicateDoor(des.Parent.Parent)
+            end
+        end
+    end)
+end)
+
+-- Obtain cursed key
+
+KeyItem.Parent = game.Players.LocalPlayer.Backpack
+firesignal(game.ReplicatedStorage.EntityInfo.Caption.OnClientEvent, "You Got Skeleton Key!!!")
