@@ -1,5 +1,5 @@
 function MakeDoor(Point)
-	local Model = game:GetObjects("rbxassetid://12033626730")[1]
+	local Model = game:GetObjects("rbxassetid://11968383210")[1]
 	Model.Parent = Point.Parent
 	Model:SetPrimaryPartCFrame(Point.CFrame * CFrame.new(0, 0, .5))
 	
