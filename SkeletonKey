@@ -34,7 +34,7 @@ local function replicateDoor(room)
             Light = true,
             Barricaded = false,
             CustomKeyNames = {"Skeleton Key"},
-            DestroyKey = true,
+            DestroyKey = false,
             GuidingLight = true,
             FastOpen = false,
         })
